@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# variables
+jar_name=app.jar
+lib_dir=app/build/libs
+
+# find the jar
+if [ -f $jar_name ]; then
+  jar=$jar_name
+elif [ -f $lib_dir/$jar_name ]; then
+  jar=$lib_dir/$jar_name
+
+# If the jar was not found then try to build it
+elif [ -r ./gradlew ]; then
+    bash ./gradlew jar
+    if [ $? -eq 0 ]; then
+        jar=$lib_dir/$jar_name
+    else
+        echo "Could not find $jar_name"
+        exit 1
+    fi
+fi
+
+java -Dfile.encoding=UTF8 -jar $jar "$@"
