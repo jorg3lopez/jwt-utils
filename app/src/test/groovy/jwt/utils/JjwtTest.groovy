@@ -1,9 +1,16 @@
 package jwt.utils
 
 import jwt.utils.external.Jjwt
+import jwt.utils.wrappers.TokenGenerationException
 import spock.lang.Specification
+
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 
 
 class JjwtTest extends Specification {
@@ -22,5 +29,90 @@ class JjwtTest extends Specification {
 
         then:
         actual.toString() == expected
+    }
+
+    def "generateToken blows up because the key isn't Base64"() {
+        given:
+        def key = "DogCow is not actually an Base64 encoded"
+
+        when:
+        Jjwt.getInstance().generateToken("keyId", "issuer", "subject", "audience", 300, key)
+
+        then:
+        thrown(TokenGenerationException)
+    }
+
+    def "generateToken blows up because the key isn't valid RSA"() {
+        given:
+        def key = Base64.getEncoder().encodeToString("DogCow is not actually an RSA key".getBytes(StandardCharsets.UTF_8))
+
+        when:
+        Jjwt.getInstance().generateToken("keyId", "issuer", "subject", "audience", 300, key)
+
+        then:
+        thrown(TokenGenerationException)
+    }
+
+    def "generateToken blows up because Jjwt doesn't like something"() {
+        given:
+        def key = Files.readString(Path.of("..", "mock_credentials", "weak-rsa-key.pem"))
+
+        when:
+        Jjwt.getInstance().generateToken("keyId", "issuer", "subject", "audience", 300, key)
+
+        then:
+        thrown(TokenGenerationException)
+    }
+
+    def "getExpirationDate works with unexpired JWT"() {
+        given:
+        def pemKey = Files.readString(Path.of("..", "mock_credentials", "private-key.pem"))
+        def secondsFromNowExpiration = 300
+        def expectedExpirationCenter = LocalDateTime.now().plusSeconds(secondsFromNowExpiration).truncatedTo(ChronoUnit.SECONDS)
+        def expectedExpirationUpper = expectedExpirationCenter.plusSeconds(3)  // 3 seconds is the window in which we expect the the code below to execute to generate the JWT (which is very generous, it should take much shorter than this)
+
+        def jwt = Jjwt.getInstance().generateToken("DogCow", "Dogcow", "subject", "fake_URL", secondsFromNowExpiration, pemKey)
+
+        when:
+        def actualExpiration = Jjwt.getInstance().getExpirationDate(jwt)
+
+        then:
+        //testing that the actual expiration is between (inclusive) the expectedExpirationCenter and expectedExpirationUpper time
+        (actualExpiration.isEqual(expectedExpirationCenter) || actualExpiration.isAfter(expectedExpirationCenter)) && (actualExpiration.isEqual(expectedExpirationUpper) || actualExpiration.isBefore(expectedExpirationUpper))
+    }
+
+    def "getExpirationDate works when the JWT is expired"() {
+        given:
+        def fileName = "expired-token"
+        def expiredToken = Files.readString(Path.of("..", "mock_credentials", fileName + ".jwt"))
+
+        when:
+        def actual = Jjwt.getInstance().getExpirationDate(expiredToken)
+        def expected = LocalDateTime.ofInstant(Instant.ofEpochSecond(1692376796L), ZoneId.systemDefault())
+
+        then:
+        actual == expected
+    }
+
+    def "readKey correctly reads a private key"() {
+        given:
+        def privateKeyString = Files.readString(Path.of("..", "mock_credentials", "private-key.pem"))
+
+        when:
+        def key = Jjwt.getInstance().readKey(privateKeyString)
+
+        then:
+        key != null
+    }
+
+    def "readKey correctly reads a public key"() {
+        given:
+        def publicKeyString = Files.readString(Path.of("..", "mock_credentials", "public-key.pem"))
+
+        when:
+        def key = Jjwt.getInstance().readKey(publicKeyString)
+
+        then:
+        key != null
     }
 }
