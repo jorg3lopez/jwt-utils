@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # variables
-jar_name=app.jar
+jar_name=app-all.jar
 lib_dir=app/build/libs
 
 # find the jar
@@ -12,7 +12,7 @@ elif [ -f $lib_dir/$jar_name ]; then
 
 # If the jar was not found then try to build it
 elif [ -r ./gradlew ]; then
-    bash ./gradlew jar
+    bash ./gradlew clean shadowJar
     if [ $? -eq 0 ]; then
         jar=$lib_dir/$jar_name
     else
