@@ -24,7 +24,6 @@ public class MainCli implements Runnable {
 
     public static void main(String[] args) {
         Arrays.stream(args).forEach(System.out::println);
-        // CommandLine.run(new MainCli(), args);
         int exitCode = new CommandLine(new MainCli()).execute(args);
         System.exit(exitCode);
     }
