@@ -2,7 +2,6 @@ package jwt.utils.external.cli;
 
 import jwt.utils.external.Jjwt;
 import jwt.utils.wrappers.TokenGenerationException;
-import org.w3c.dom.css.CSSImportRule;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -10,7 +9,10 @@ import picocli.CommandLine.Option;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 @Command(name = "generate-jwt", description = "Generate a JSON Token (JWT)")
 public class GenerateJwtCommand implements Runnable {
@@ -21,9 +23,6 @@ public class GenerateJwtCommand implements Runnable {
 
     @Option(names = {"-p", "--privatekey"}, description = "Path to the private key file", required = true)
     private String privateKeyPath;
-
-    @Option(names = {"-o", "--output"}, description = "Path to the output file", defaultValue = "generatedJWT.jwt")
-    private String outputPath;
 
     @Option(names = {"-h", "--help"}, usageHelp = true, description = "Display help information")
     private boolean helpRequested;
@@ -51,7 +50,7 @@ public class GenerateJwtCommand implements Runnable {
         try {
             String privateKey = Files.readString(Paths.get(privateKeyPath));
             Jjwt jwtUtils = new Jjwt();
-            jwt = jwtUtils.generateToken(keyId,issuer,subject,audience,300,privateKey);
+            jwt = jwtUtils.generateToken(keyId, issuer, subject, audience, 300, privateKey);
             System.out.println("\n******************************************jwt");
             System.out.println(jwt);
             System.out.println("**************************************end-jwt\n");
@@ -60,20 +59,34 @@ public class GenerateJwtCommand implements Runnable {
         }
 
         // Write the JWT to the output file
-        if (createAndWriteToFile(outputPath, jwt)) {
-            System.out.println("JWT generated and saved to: " + outputPath);
+        createFile(jwt);
+            
+        
+    }
+
+    private void createFile(String jwt) {
+        try {
+            // Create the 'build/jwt' directory if it doesn't exist
+            Path jwtDir = Paths.get("app/build/jwt");
+            Files.createDirectories(jwtDir);
+
+            String filename = generateFilename();
+            
+            // Write the JWT to the 'build/jwt/generatedJWT.jwt' file
+            Path outputPath = jwtDir.resolve(filename);
+            Files.write(outputPath, jwt.getBytes());
+            
+            System.out.println("JWT generated and saved to: app/build/jwt/" + filename);
+        } catch (IOException e) {
+            System.out.println("unable to write JWT to file.\n" + e.getMessage());
         }
     }
 
-    private boolean createAndWriteToFile(String outputPath, String jwt) {
-            try {
-                FileWriter writer = new FileWriter(outputPath);
-                writer.write(jwt);
-                writer.close();
-                return true;
-            } catch (IOException e) {
-                System.out.println("unable to write JWT to file.\n" +e.getMessage());
-                return false;
-            }
+    protected String generateFilename() {
+        // Generate a unique filename based on timestamp
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
+        String timestamp = dateFormat.format(new Date());
+
+        return "jwt_" + timestamp + ".jwt";
     }
 }
