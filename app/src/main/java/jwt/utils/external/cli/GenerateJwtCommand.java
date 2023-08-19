@@ -7,6 +7,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -21,7 +22,7 @@ public class GenerateJwtCommand implements Runnable {
     @Option(names = {"-p", "--privatekey"}, description = "Path to the private key file", required = true)
     private String privateKeyPath;
 
-    @Option(names = {"-o", "--output"}, description = "Path to the output file")
+    @Option(names = {"-o", "--output"}, description = "Path to the output file", defaultValue = "generatedJWT.jwt")
     private String outputPath;
 
     @Option(names = {"-h", "--help"}, usageHelp = true, description = "Display help information")
@@ -45,16 +46,34 @@ public class GenerateJwtCommand implements Runnable {
             CommandLine.usage(this, System.out);
             return;
         }
+        String jwt;
         // Load the private key from the specific path
         try {
             String privateKey = Files.readString(Paths.get(privateKeyPath));
             Jjwt jwtUtils = new Jjwt();
-            String jwt = jwtUtils.generateToken(keyId,issuer,subject,audience,300,privateKey);
-            System.out.println("\n************************************jwt");
+            jwt = jwtUtils.generateToken(keyId,issuer,subject,audience,300,privateKey);
+            System.out.println("\n******************************************jwt");
             System.out.println(jwt);
-            System.out.println("**************************************end-jwt");
+            System.out.println("**************************************end-jwt\n");
         } catch (IOException | TokenGenerationException e) {
             throw new RuntimeException(e);
         }
+
+        // Write the JWT to the output file
+        if (createAndWriteToFile(outputPath, jwt)) {
+            System.out.println("JWT generated and saved to: " + outputPath);
+        }
+    }
+
+    private boolean createAndWriteToFile(String outputPath, String jwt) {
+            try {
+                FileWriter writer = new FileWriter(outputPath);
+                writer.write(jwt);
+                writer.close();
+                return true;
+            } catch (IOException e) {
+                System.out.println("unable to write JWT to file.\n" +e.getMessage());
+                return false;
+            }
     }
 }
