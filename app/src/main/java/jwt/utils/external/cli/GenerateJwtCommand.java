@@ -21,23 +21,23 @@ public class GenerateJwtCommand implements Runnable {
     private final String ETOR_SERVICE_SENDER = "flexion.etor-service-sender";
     private final String RS_STAGING = "staging.prime.cdc.gov";
 
-    @Option(names = {"-p", "--privatekey"}, description = "Path to the private key file", required = true)
-    private String privateKeyPath;
+    @Option(names = {"-p", "--privateKeyPath"}, description = "Path to the private key file", required = true)
+    protected String privateKeyPath;
 
     @Option(names = {"-h", "--help"}, usageHelp = true, description = "Display help information")
-    private boolean helpRequested;
+    protected boolean helpRequested;
 
     @Option(names = {"-kid", "--keyId"}, description = "Key ID for JWT header", defaultValue = SIMULATED_HOSPITAL)
-    private String keyId;
+    protected String keyId;
 
     @Option(names = {"-i", "--issuer"}, description = "Issuer for JWT claims", defaultValue = SIMULATED_HOSPITAL)
-    private String issuer;
+    protected String issuer;
 
     @Option(names = {"-s", "--subject"}, description = "Subject for JWT claims", defaultValue = SIMULATED_HOSPITAL)
-    private String subject;
+    protected String subject;
 
     @Option(names = {"-a", "--audience"}, description = "Audience for JWT claims", defaultValue = RS_STAGING)
-    private String audience;
+    protected String audience;
 
     @Override
     public void run() {
