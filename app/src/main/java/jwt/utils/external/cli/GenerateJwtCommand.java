@@ -27,13 +27,13 @@ public class GenerateJwtCommand implements Runnable {
     @Option(names = {"-h", "--help"}, usageHelp = true, description = "Display help information")
     protected boolean helpRequested;
 
-    @Option(names = {"-kid", "--keyId"}, description = "Key ID for JWT header", defaultValue = SIMULATED_HOSPITAL)
+    @Option(names = {"-kid", "--keyId"}, description = "Key ID for JWT header", defaultValue = ETOR_SERVICE_SENDER)
     protected String keyId;
 
-    @Option(names = {"-i", "--issuer"}, description = "Issuer for JWT claims", defaultValue = SIMULATED_HOSPITAL)
+    @Option(names = {"-i", "--issuer"}, description = "Issuer for JWT claims", defaultValue = ETOR_SERVICE_SENDER)
     protected String issuer;
 
-    @Option(names = {"-s", "--subject"}, description = "Subject for JWT claims", defaultValue = SIMULATED_HOSPITAL)
+    @Option(names = {"-s", "--subject"}, description = "Subject for JWT claims", defaultValue = ETOR_SERVICE_SENDER)
     protected String subject;
 
     @Option(names = {"-a", "--audience"}, description = "Audience for JWT claims", defaultValue = RS_STAGING)

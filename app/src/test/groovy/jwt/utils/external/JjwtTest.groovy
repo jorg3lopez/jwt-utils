@@ -1,6 +1,5 @@
 package jwt.utils.external
 
-import jwt.utils.external.Jjwt
 import jwt.utils.wrappers.TokenGenerationException
 import spock.lang.Specification
 
