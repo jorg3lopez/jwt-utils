@@ -9,7 +9,7 @@ import picocli.CommandLine.Option;
 public class MainCli implements Runnable {
 
     @Option(names = {"-h", "--help"}, usageHelp = true, description = "Display help information")
-    private boolean helpRequested;
+    protected boolean helpRequested;
 
     @Override
     public void run() {
