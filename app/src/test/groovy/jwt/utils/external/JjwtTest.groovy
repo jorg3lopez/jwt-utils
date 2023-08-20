@@ -1,4 +1,4 @@
-package jwt.utils
+package jwt.utils.external
 
 import jwt.utils.external.Jjwt
 import jwt.utils.wrappers.TokenGenerationException
